@@ -56,7 +56,7 @@ public class TestModelB {
         em = emf.createEntityManager();
     }
 
-    //@Ignore
+    @Ignore
     @Test
     public void test1Create() {
         System.out.println("=== test1Create ==========================================================================");
@@ -104,8 +104,10 @@ public class TestModelB {
     public void test2Read() {
         System.out.println("=== test2Read ==========================================================================");
         User user = em.find(User.class, 1L);
+        Order order = user.getItems().get(0).getOrder();
         em.clear();
         System.out.println(user);
+        System.out.println(order);
         System.out.println("=============================================================================");
     }
 
