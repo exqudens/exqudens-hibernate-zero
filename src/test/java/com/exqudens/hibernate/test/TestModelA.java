@@ -3,12 +3,11 @@ package com.exqudens.hibernate.test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.spi.PersistenceProvider;
 import javax.persistence.spi.PersistenceUnitInfo;
-import javax.persistence.spi.PersistenceUnitTransactionType;
 import javax.sql.DataSource;
 
 import org.junit.After;
@@ -16,7 +15,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
@@ -26,20 +24,24 @@ import com.exqudens.hibernate.test.model.a.User;
 import com.exqudens.hibernate.test.util.ClassPathUtils;
 import com.exqudens.hibernate.test.util.ConfigGroovyUtils;
 import com.exqudens.hibernate.test.util.DataSourceUtils;
-import com.exqudens.hibernate.util.EntityManagerFactoryUtils;
 import com.exqudens.hibernate.util.PersistenceUnitInfoUtils;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestModelA {
 
-    private static final String DS_PREFIX;
-    private static final String JPA_PREFIX;
+    private static final String   DS_PREFIX;
+    private static final String   JPA_PREFIX;
     private static final String[] DS_IGNORE_KEYS;
 
     static {
         DS_PREFIX = "dataSources.exqudensHibernateDataSource.";
         JPA_PREFIX = "jpaProviders.hibernateJpaProvider.properties.";
-        DS_IGNORE_KEYS = new String[] {"host", "port", "dbName", "jdbcUrlParams"};
+        DS_IGNORE_KEYS = new String[] {
+            "host",
+            "port",
+            "dbName",
+            "jdbcUrlParams"
+        };
     }
 
     private static EntityManagerFactory emf;
@@ -56,10 +58,9 @@ public class TestModelA {
         em = emf.createEntityManager();
     }
 
-    @Ignore
     @Test
     public void test1Create() {
-        System.out.println("=== test1Create ==========================================================================");
+        System.out.println("=== test1Create =========================================================================");
         List<User> users = new ArrayList<>();
         List<Order> orders = new ArrayList<>();
         List<Item> items = new ArrayList<>();
@@ -97,38 +98,63 @@ public class TestModelA {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
-        System.out.println("=============================================================================");
+        System.out.println("=========================================================================================");
     }
 
-    @Ignore
     @Test
     public void test2Read() {
-        System.out.println("=== test2Read ==========================================================================");
+        System.out.println("=== test2Read ===========================================================================");
         User user = em.find(User.class, 1L);
         em.clear();
         System.out.println(user);
-        System.out.println("=============================================================================");
+        System.out.println("=========================================================================================");
     }
 
-    @Ignore
     @Test
     public void test3Update() {
-        System.out.println("=== test3Update ==========================================================================");
-        System.out.println();
-        System.out.println("=============================================================================");
+        System.out.println("=== test3Update =========================================================================");
+
+        User user = em.find(User.class, 1L);
+        user.setEmail("email_999");
+
+        user.getOrders().get(1).getItems().add(
+            new Item(
+                null,
+                null,
+                "description_" + 4,
+                user.getOrders().get(1),
+                user.getOrders().get(1).getItems().get(1),
+                new ArrayList<>()
+            )
+        );
+
+        try {
+            em.merge(user);
+            em.getTransaction().begin();
+            em.flush();
+            em.getTransaction().commit();
+            em.clear();
+        } catch (Exception e) {
+            em.getTransaction().rollback();
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+        user = em.find(User.class, 1L);
+        System.out.println(user);
+        System.out.println("=========================================================================================");
     }
 
-    @Ignore
     @Test
     public void test4Delete() {
-        System.out.println("=== test4Delete ==========================================================================");
+        System.out.println("=== test4Delete =========================================================================");
         User user = em.find(User.class, 1L);
         em.remove(user);
         em.getTransaction().begin();
         em.flush();
         em.getTransaction().commit();
         em.clear();
-        System.out.println("=============================================================================");
+        System.out.println("=========================================================================================");
     }
 
     @After
@@ -141,64 +167,41 @@ public class TestModelA {
     @AfterClass
     public static void afterClass() {
         if (emf != null && emf.isOpen()) {
-            //emf.close();
+            // emf.close();
         }
     }
 
     private static EntityManagerFactory createEntityManagerFactory(
-            String dataSourcePrefix,
-            String jpaPrefix,
-            String... dataSourceIgnoreKeys
+        String dataSourcePrefix,
+        String jpaPrefix,
+        String... dataSourceIgnoreKeys
     ) {
         try {
             Map<String, Object> configMap = ConfigGroovyUtils.toMap(ClassPathUtils.toString("config-test.groovy"));
 
-            DataSource dataSource = DataSourceUtils
-            .createDataSource(
+            DataSource dataSource = DataSourceUtils.createDataSource(
                 ConfigGroovyUtils.retrieveProperties(configMap, dataSourcePrefix, dataSourceIgnoreKeys)
             );
 
-            Map<String, DataSource> dataSourceMap = new ConcurrentHashMap<>();
-            dataSourceMap.put("any", dataSource);
-
             Map<String, Object> properties = ConfigGroovyUtils.retrieveProperties(configMap, jpaPrefix);
 
-            return createEntityManagerFactory(dataSourceMap, properties);
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            throw e;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static EntityManagerFactory createEntityManagerFactory(
-            Map<String, DataSource> dataSourceMap,
-            Map<String, Object> properties
-    ) {
-        try {
-            /*return EntityManagerFactoryUtils
-            .createEntityManagerFactory(
-                    dataSourceMap,
-                    properties,
-                    User.class,
-                    Order.class,
-                    Item.class
-            );*/
-            PersistenceUnitInfo info = PersistenceUnitInfoUtils.createPersistenceUnitInfo(
+            PersistenceUnitInfo info = PersistenceUnitInfoUtils.createHibernatePersistenceUnitInfo(
                 "default",
-                PersistenceUnitInfoUtils.HIBERNATE_PERSISTENCE_PROVIDER_CLASS_NAME,
-                dataSourceMap.entrySet().iterator().next().getValue(),
-                null,
-                PersistenceUnitTransactionType.RESOURCE_LOCAL,
+                dataSource,
                 properties,
                 User.class,
                 Order.class,
                 Item.class
             );
-            return EntityManagerFactoryUtils
-            .createEntityManagerFactory(info);
+
+            ClassLoader cl = PersistenceUnitInfoUtils.class.getClassLoader();
+            Object o = cl.loadClass(info.getPersistenceProviderClassName()).newInstance();
+            PersistenceProvider persistenceProvider = PersistenceProvider.class.cast(o);
+            EntityManagerFactory emf = persistenceProvider.createContainerEntityManagerFactory(
+                info,
+                info.getProperties()
+            );
+            return emf;
         } catch (RuntimeException e) {
             e.printStackTrace();
             throw e;
