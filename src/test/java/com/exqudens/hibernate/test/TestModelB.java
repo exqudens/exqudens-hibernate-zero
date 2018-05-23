@@ -59,7 +59,7 @@ public class TestModelB {
         em = emf.createEntityManager();
     }
 
-    @Ignore
+    //@Ignore
     @Test
     public void test1Create() {
         System.out.println(
@@ -84,10 +84,13 @@ public class TestModelB {
         items.stream().forEach(i -> i.setUser(users.get(0)));
         items.stream().forEach(i -> i.setOrder(orders.get(0)));
 
-        items.get(1).getChildren().add(items.get(0));
-        items.get(1).getChildren().add(items.get(2));
-        items.get(0).setParent(items.get(1));
-        items.get(2).setParent(items.get(1));
+        items.get(0).getChildren().add(items.get(1));
+        items.get(0).getChildren().add(items.get(2));
+        items.get(1).setParent(items.get(0));
+        items.get(2).setParent(items.get(0));
+
+        items.get(2).getChildren().add(items.get(0));
+        items.get(0).setParent(items.get(2));
 
         try {
             em.persist(users.get(0));
@@ -172,6 +175,7 @@ public class TestModelB {
             PersistenceUnitInfo info = PersistenceUnitInfoUtils.createHibernatePersistenceUnitInfo(
                 "default",
                 dataSource,
+                null,
                 properties,
                 User.class,
                 Order.class,

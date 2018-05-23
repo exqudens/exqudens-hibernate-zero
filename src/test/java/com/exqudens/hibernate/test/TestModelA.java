@@ -188,6 +188,7 @@ public class TestModelA {
             PersistenceUnitInfo info = PersistenceUnitInfoUtils.createHibernatePersistenceUnitInfo(
                 "default",
                 dataSource,
+                null,
                 properties,
                 User.class,
                 Order.class,

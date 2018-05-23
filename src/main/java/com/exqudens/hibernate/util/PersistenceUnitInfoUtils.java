@@ -38,7 +38,8 @@ public class PersistenceUnitInfoUtils {
 
     public static PersistenceUnitInfo createHibernatePersistenceUnitInfo(
         String persistenceUnitName,
-        DataSource dataSource,
+        DataSource nonJtaDataSource,
+        DataSource jtaDataSource,
         Map<String, Object> properties,
         Class<?>... classes
     ) {
@@ -85,8 +86,8 @@ public class PersistenceUnitInfoUtils {
             return createPersistenceUnitInfo(
                 persistenceUnitName,
                 HIBERNATE_PERSISTENCE_PROVIDER_CLASS_NAME,
-                null,
-                null,
+                nonJtaDataSource,
+                jtaDataSource,
                 PersistenceUnitTransactionType.RESOURCE_LOCAL,
                 properties,
                 classes
