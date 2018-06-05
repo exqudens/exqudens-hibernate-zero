@@ -10,6 +10,8 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -26,7 +28,14 @@ import lombok.ToString;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString(exclude = {"id", "modified", "items"})
+@ToString(
+    exclude = {
+        "id",
+        "modified",
+        "user",
+        "items"
+    }
+)
 @Entity
 @Table(name = "order")
 public class Order {
@@ -47,6 +56,11 @@ public class Order {
 
     @Column(name = "order_number")
     private String orderNumber;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id")
+    @Fetch(FetchMode.SELECT)
+    private User user;
 
     @OneToMany(mappedBy = "order", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Fetch(FetchMode.SELECT)

@@ -39,7 +39,7 @@ public class Seller {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
-    @Column(name = "user_id")
+    @Column(name = "seller_id")
     private Long id;
 
     @Column(

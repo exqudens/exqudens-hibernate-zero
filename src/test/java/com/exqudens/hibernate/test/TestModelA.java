@@ -109,7 +109,7 @@ public class TestModelA {
         System.out.println("=========================================================================================");
     }
 
-    //@Ignore
+    @Ignore
     @Test
     public void test2Read() {
         System.out.println("=== test2Read ===========================================================================");
@@ -119,7 +119,7 @@ public class TestModelA {
         System.out.println("=========================================================================================");
     }
 
-    //@Ignore
+    @Ignore
     @Test
     public void test3Update() {
         System.out.println("=== test3Update =========================================================================");
