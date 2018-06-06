@@ -119,7 +119,7 @@ public class TestModelA {
         System.out.println("=========================================================================================");
     }
 
-    @Ignore
+    //@Ignore
     @Test
     public void test3Update() {
         System.out.println("=== test3Update =========================================================================");
@@ -128,16 +128,8 @@ public class TestModelA {
         user.setEmail("email_999");
 
         user.getOrders().get(1).getItems().add(
-            new Item(
-                null,
-                null,
-                "description_" + 4,
-                user.getOrders().get(1),
-                user.getOrders().get(1).getItems().get(1),
-                new ArrayList<>()
-            )
+            new Item(null, null, "description_4", user.getOrders().get(1), null, new ArrayList<>())
         );
-        user.getOrders().get(1).getItems().remove(0);
 
         try {
             em.merge(user);
@@ -156,7 +148,7 @@ public class TestModelA {
         System.out.println("=========================================================================================");
     }
 
-    //@Ignore
+    @Ignore
     @Test
     public void test4Delete() {
         System.out.println("=== test4Delete =========================================================================");
