@@ -2,13 +2,9 @@ package com.exqudens.hibernate.test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.spi.PersistenceProvider;
-import javax.persistence.spi.PersistenceUnitInfo;
-import javax.sql.DataSource;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -24,28 +20,9 @@ import com.exqudens.hibernate.test.model.c.Order;
 import com.exqudens.hibernate.test.model.c.Seller;
 import com.exqudens.hibernate.test.model.c.User;
 import com.exqudens.hibernate.test.model.c.UserItem;
-import com.exqudens.hibernate.test.util.ClassPathUtils;
-import com.exqudens.hibernate.test.util.ConfigGroovyUtils;
-import com.exqudens.hibernate.test.util.DataSourceUtils;
-import com.exqudens.hibernate.util.PersistenceUnitInfoUtils;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestModelC {
-
-    private static final String   DS_PREFIX;
-    private static final String   JPA_PREFIX;
-    private static final String[] DS_IGNORE_KEYS;
-
-    static {
-        DS_PREFIX = "dataSources.exqudensHibernateDataSource.";
-        JPA_PREFIX = "jpaProviders.hibernateJpaProvider.properties.";
-        DS_IGNORE_KEYS = new String[] {
-            "host",
-            "port",
-            "dbName",
-            "jdbcUrlParams"
-        };
-    }
 
     private static EntityManagerFactory emf;
 
@@ -53,7 +30,7 @@ public class TestModelC {
 
     @BeforeClass
     public static void beforeClass() {
-        emf = createEntityManagerFactory(DS_PREFIX, JPA_PREFIX, DS_IGNORE_KEYS);
+        emf = JpaTest.createEntityManagerFactory();
     }
 
     @Before
@@ -177,49 +154,6 @@ public class TestModelC {
     public static void afterClass() {
         if (emf != null && emf.isOpen()) {
             // emf.close();
-        }
-    }
-
-    private static EntityManagerFactory createEntityManagerFactory(
-        String dataSourcePrefix,
-        String jpaPrefix,
-        String... dataSourceIgnoreKeys
-    ) {
-        try {
-            Map<String, Object> configMap = ConfigGroovyUtils.toMap(ClassPathUtils.toString("config-test.groovy"));
-
-            DataSource dataSource = DataSourceUtils.createDataSource(
-                ConfigGroovyUtils.retrieveProperties(configMap, dataSourcePrefix, dataSourceIgnoreKeys)
-            );
-
-            Map<String, Object> properties = ConfigGroovyUtils.retrieveProperties(configMap, jpaPrefix);
-
-            PersistenceUnitInfo info = PersistenceUnitInfoUtils.createHibernatePersistenceUnitInfo(
-                "default",
-                dataSource,
-                null,
-                properties,
-                User.class,
-                Seller.class,
-                Order.class,
-                Item.class,
-                UserItem.class
-            );
-
-            ClassLoader cl = PersistenceUnitInfoUtils.class.getClassLoader();
-            Object o = cl.loadClass(info.getPersistenceProviderClassName()).newInstance();
-            PersistenceProvider persistenceProvider = PersistenceProvider.class.cast(o);
-            EntityManagerFactory emf = persistenceProvider.createContainerEntityManagerFactory(
-                info,
-                info.getProperties()
-            );
-            return emf;
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            throw e;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
         }
     }
 

@@ -1,7 +1,6 @@
 package com.exqudens.hibernate.test.util;
 
 import java.io.Closeable;
-import java.util.Map;
 import java.util.Properties;
 
 import javax.sql.DataSource;
@@ -21,11 +20,9 @@ public class DataSourceUtils {
         LOG.trace("");
     }
 
-    public static DataSource createDataSource(Map<String, Object> properties) {
+    public static DataSource createDataSource(Properties properties) {
         LOG.trace("");
-        Properties p = new Properties();
-        p.putAll(properties);
-        HikariConfig hikariConfig = new HikariConfig(p);
+        HikariConfig hikariConfig = new HikariConfig(properties);
         HikariDataSource dataSource = new HikariDataSource(hikariConfig);
         return dataSource;
     }

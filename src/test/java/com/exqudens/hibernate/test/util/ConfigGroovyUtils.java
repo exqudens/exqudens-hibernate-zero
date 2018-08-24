@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ConfigGroovyUtils {
+class ConfigGroovyUtils {
 
     private static final Logger LOG;
 
