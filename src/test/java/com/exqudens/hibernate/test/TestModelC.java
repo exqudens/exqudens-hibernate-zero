@@ -19,17 +19,18 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import com.exqudens.hibernate.test.model.a.Item;
-import com.exqudens.hibernate.test.model.a.Order;
-import com.exqudens.hibernate.test.model.a.Seller;
-import com.exqudens.hibernate.test.model.a.User;
+import com.exqudens.hibernate.test.model.c.Item;
+import com.exqudens.hibernate.test.model.c.Order;
+import com.exqudens.hibernate.test.model.c.Seller;
+import com.exqudens.hibernate.test.model.c.User;
+import com.exqudens.hibernate.test.model.c.UserItem;
 import com.exqudens.hibernate.test.util.ClassPathUtils;
 import com.exqudens.hibernate.test.util.ConfigGroovyUtils;
 import com.exqudens.hibernate.test.util.DataSourceUtils;
 import com.exqudens.hibernate.util.PersistenceUnitInfoUtils;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestModelA {
+public class TestModelC {
 
     private static final String   DS_PREFIX;
     private static final String   JPA_PREFIX;
@@ -69,7 +70,7 @@ public class TestModelA {
         List<Order> orders = new ArrayList<>();
         List<Item> items = new ArrayList<>();
 
-        users.add(new User(null, null, "email_" + 1, new ArrayList<>()));
+        users.add(new User(null, null, "email_" + 1, new ArrayList<>(), new ArrayList<>()));
 
         sellers.add(new Seller(null, null, "name_1", new ArrayList<>()));
 
@@ -77,13 +78,11 @@ public class TestModelA {
         orders.add(new Order(null, null, "orderNumber_" + 2, null, null, new ArrayList<>()));
         orders.add(new Order(null, null, "orderNumber_" + 3, null, null, new ArrayList<>()));
 
-        items.add(new Item(null, null, "description_" + 1, null, null, new ArrayList<>()));
-        items.add(new Item(null, null, "description_" + 2, null, null, new ArrayList<>()));
-        items.add(new Item(null, null, "description_" + 3, null, null, new ArrayList<>()));
+        items.add(new Item(null, null, "description_" + 1, null, new ArrayList<>()));
+        items.add(new Item(null, null, "description_" + 2, null, new ArrayList<>()));
+        items.add(new Item(null, null, "description_" + 3, null, new ArrayList<>()));
 
         users.get(0).getOrders().addAll(orders);
-
-        sellers.get(0).getOrders().addAll(orders);
 
         orders.stream().forEach(o -> o.setUser(users.get(0)));
         orders.stream().forEach(o -> o.setSeller(sellers.get(0)));
@@ -91,10 +90,8 @@ public class TestModelA {
 
         items.stream().forEach(i -> i.setOrder(orders.get(1)));
 
-        items.get(1).getChildren().add(items.get(0));
-        items.get(1).getChildren().add(items.get(2));
-        items.get(0).setParent(items.get(1));
-        items.get(2).setParent(items.get(1));
+        items.stream().map(i -> new UserItem(null, users.get(0), i)).peek(ui -> users.get(0).getUserItems().add(ui))
+        .forEach(ui -> ui.getItem().getUserItems().add(ui));
 
         try {
             em.persist(users.get(0));
@@ -129,9 +126,9 @@ public class TestModelA {
         User user = em.find(User.class, 1L);
         user.setEmail("email_999");
 
-        user.getOrders().get(1).getItems().add(
+        /*user.getOrders().get(1).getItems().add(
             new Item(null, null, "description_4", user.getOrders().get(1), null, new ArrayList<>())
-        );
+        );*/
 
         try {
             em.merge(user);
@@ -150,7 +147,7 @@ public class TestModelA {
         System.out.println("=========================================================================================");
     }
 
-    @Ignore
+    //@Ignore
     @Test
     public void test4Delete() {
         System.out.println("=== test4Delete =========================================================================");
@@ -205,7 +202,8 @@ public class TestModelA {
                 User.class,
                 Seller.class,
                 Order.class,
-                Item.class
+                Item.class,
+                UserItem.class
             );
 
             ClassLoader cl = PersistenceUnitInfoUtils.class.getClassLoader();
